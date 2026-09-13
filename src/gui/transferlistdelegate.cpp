@@ -34,6 +34,11 @@
 #include "base/preferences.h"
 #include "transferlistmodel.h"
 
+namespace
+{
+    constexpr int MODERN_ROW_HEIGHT = 54;
+}
+
 TransferListDelegate::TransferListDelegate(QObject *parent)
     : QStyledItemDelegate(parent)
 {
@@ -41,11 +46,10 @@ TransferListDelegate::TransferListDelegate(QObject *parent)
 
 QSize TransferListDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    // Reimplementing sizeHint() because the 'name' column contains text+icon.
-    // When that WHOLE column goes out of view(eg user scrolls horizontally)
-    // the rows shrink if the text's height is smaller than the icon's height.
-    // This happens because icon from the 'name' column is no longer drawn.
-
+    // Keep every row deliberately roomy.  The stock qBittorrent row height is
+    // optimized for dense tables; this fork uses a more touch-friendly,
+    // uTorrent-like layout with breathing room around the torrent name, status
+    // and progress bar.
     if (m_nameColHeight == -1)
     {
         const QModelIndex nameColumn = index.sibling(index.row(), TransferListModel::TR_NAME);
@@ -53,7 +57,7 @@ QSize TransferListDelegate::sizeHint(const QStyleOptionViewItem &option, const Q
     }
 
     QSize size = QStyledItemDelegate::sizeHint(option, index);
-    size.setHeight(std::max(m_nameColHeight, size.height()));
+    size.setHeight(std::max({m_nameColHeight, size.height(), MODERN_ROW_HEIGHT}));
     return size;
 }
 
@@ -91,8 +95,20 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
             m_progressBarPainter.paint(painter, customOption, index.data().toString(), progress, color);
         }
         break;
+    case TransferListModel::TR_NAME:
+        {
+            QStyleOptionViewItem customOption {option};
+            customOption.font.setBold(true);
+            customOption.rect = option.rect.adjusted(8, 0, -6, 0);
+            QStyledItemDelegate::paint(painter, customOption, index);
+        }
+        break;
     default:
-        QStyledItemDelegate::paint(painter, option, index);
+        {
+            QStyleOptionViewItem customOption {option};
+            customOption.rect = option.rect.adjusted(4, 0, -4, 0);
+            QStyledItemDelegate::paint(painter, customOption, index);
+        }
         break;
     }
 }
