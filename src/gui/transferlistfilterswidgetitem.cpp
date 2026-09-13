@@ -7,6 +7,8 @@
 #include <QStyleOptionViewItem>
 #include <QVBoxLayout>
 
+#include "base/global.h"
+
 namespace
 {
     class ArrowCheckBox final : public QCheckBox
