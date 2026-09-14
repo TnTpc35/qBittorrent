@@ -7,24 +7,6 @@
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * In addition, as a special exception, the copyright holders give permission to
- * link this program with the OpenSSL project's "OpenSSL" library (or with
- * modified versions of it that use the same license as the "OpenSSL" library),
- * and distribute the linked executables. You must obey the GNU General Public
- * License in all respects for all of the code used other than "OpenSSL".  If you
- * modify file(s), you may extend this exception to your version of the file(s),
- * but you are not obligated to do so. If you do not wish to do so, delete this
- * exception statement from your version.
  */
 
 #include "transferlistdelegate.h"
@@ -36,7 +18,7 @@
 
 namespace
 {
-    constexpr int MODERN_ROW_HEIGHT = 54;
+    constexpr int UTORRENT_ROW_HEIGHT = 28;
 }
 
 TransferListDelegate::TransferListDelegate(QObject *parent)
@@ -46,10 +28,6 @@ TransferListDelegate::TransferListDelegate(QObject *parent)
 
 QSize TransferListDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    // Keep every row deliberately roomy.  The stock qBittorrent row height is
-    // optimized for dense tables; this fork uses a more touch-friendly,
-    // uTorrent-like layout with breathing room around the torrent name, status
-    // and progress bar.
     if (m_nameColHeight == -1)
     {
         const QModelIndex nameColumn = index.sibling(index.row(), TransferListModel::TR_NAME);
@@ -57,7 +35,7 @@ QSize TransferListDelegate::sizeHint(const QStyleOptionViewItem &option, const Q
     }
 
     QSize size = QStyledItemDelegate::sizeHint(option, index);
-    size.setHeight(std::max({m_nameColHeight, size.height(), MODERN_ROW_HEIGHT}));
+    size.setHeight(std::max({m_nameColHeight, size.height(), UTORRENT_ROW_HEIGHT}));
     return size;
 }
 
@@ -68,7 +46,6 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
     case TransferListModel::TR_PROGRESS:
         {
             using namespace BitTorrent;
-
             const auto isEnableState = [](const TorrentState state) -> bool
             {
                 switch (state)
@@ -83,30 +60,20 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
             };
 
             const int progress = static_cast<int>(index.data(TransferListModel::UnderlyingDataRole).toReal());
-
             const QModelIndex statusIndex = index.siblingAtColumn(TransferListModel::TR_STATUS);
             const auto torrentState = statusIndex.data(TransferListModel::UnderlyingDataRole).value<TorrentState>();
 
             QStyleOptionViewItem customOption {option};
             customOption.state.setFlag(QStyle::State_Enabled, isEnableState(torrentState));
-
-            const QColor color = Preferences::instance()->getProgressBarFollowsTextColor() ? index.data(Qt::ForegroundRole).value<QColor>() : QColor();
-
+            const QColor color = Preferences::instance()->getProgressBarFollowsTextColor()
+                ? index.data(Qt::ForegroundRole).value<QColor>() : QColor();
             m_progressBarPainter.paint(painter, customOption, index.data().toString(), progress, color);
-        }
-        break;
-    case TransferListModel::TR_NAME:
-        {
-            QStyleOptionViewItem customOption {option};
-            customOption.font.setBold(true);
-            customOption.rect = option.rect.adjusted(8, 0, -6, 0);
-            QStyledItemDelegate::paint(painter, customOption, index);
         }
         break;
     default:
         {
             QStyleOptionViewItem customOption {option};
-            customOption.rect = option.rect.adjusted(4, 0, -4, 0);
+            customOption.rect = option.rect.adjusted(3, 0, -3, 0);
             QStyledItemDelegate::paint(painter, customOption, index);
         }
         break;
