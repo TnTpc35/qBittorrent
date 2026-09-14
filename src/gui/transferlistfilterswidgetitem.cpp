@@ -46,18 +46,17 @@ TransferListFiltersWidgetItem::TransferListFiltersWidgetItem(const QString &capt
 
     QFont font;
     font.setBold(true);
-    font.setPointSizeF(font.pointSizeF() + 0.8);
     m_caption->setFont(font);
     m_caption->setObjectName(u"modernSidebarHeader"_s);
-    m_caption->setMinimumHeight(38);
+    m_caption->setMinimumHeight(26);
     m_caption->setCursor(Qt::PointingHandCursor);
 
     m_filterWidget->setObjectName(u"modernSidebarBody"_s);
     m_filterWidget->setAttribute(Qt::WA_StyledBackground, true);
 
     auto *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(12, 9, 12, 11);
-    layout->setSpacing(7);
+    layout->setContentsMargins(3, 2, 3, 3);
+    layout->setSpacing(2);
     layout->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     layout->addWidget(m_caption);
     layout->addWidget(m_filterWidget);
