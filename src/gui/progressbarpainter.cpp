@@ -1,7 +1,5 @@
 #include "progressbarpainter.h"
 
-#include <algorithm>
-
 #include <QPainter>
 #include <QPalette>
 #include <QStyleOptionViewItem>
@@ -18,38 +16,33 @@ ProgressBarPainter::ProgressBarPainter(QObject *parent)
 
 void ProgressBarPainter::paint(QPainter *painter, const QStyleOptionViewItem &option, const QString &text, const int progress, const QColor &color) const
 {
-    const QRect outer = option.rect.adjusted(10, 15, -10, -15);
-    const qreal radius = outer.height() / 2.0;
-
-    QColor track = option.palette.color(QPalette::Mid);
-    track.setAlpha(150);
+    const QRect outer = option.rect.adjusted(6, 7, -6, -7);
 
     QColor chunk = color;
     if (!chunk.isValid())
-        chunk = m_chunkColor.isValid() ? m_chunkColor : QColor(63, 170, 75);
-
+        chunk = QColor("#79b530");
     if (!option.state.testFlag(QStyle::State_Enabled))
-        chunk = option.palette.color(QPalette::Disabled, QPalette::Highlight);
+        chunk = QColor("#a9a9a9");
 
     painter->save();
     painter->setRenderHint(QPainter::Antialiasing, true);
-    painter->setPen(Qt::NoPen);
-    painter->setBrush(track);
-    painter->drawRoundedRect(outer, radius, radius);
 
-    const qreal fraction = qBound(0, progress, 100) / 100.0;
-    if (fraction > 0.0)
+    painter->setPen(QColor("#b8b8b8"));
+    painter->setBrush(QColor("#eeeeee"));
+    painter->drawRoundedRect(outer, 2, 2);
+
+    const int bounded = qBound(0, progress, 100);
+    if (bounded > 0)
     {
-        QRectF fill = outer;
-        fill.setWidth(std::max<qreal>(outer.height(), outer.width() * fraction));
+        QRect fill = outer.adjusted(1, 1, -1, -1);
+        fill.setWidth((fill.width() * bounded) / 100);
+        painter->setPen(Qt::NoPen);
         painter->setBrush(chunk);
-        painter->drawRoundedRect(fill, radius, radius);
+        painter->drawRect(fill);
     }
 
-    painter->setPen(option.palette.color(QPalette::Text));
-    QFont font = option.font;
-    font.setBold(true);
-    painter->setFont(font);
+    painter->setPen(QColor("#202020"));
+    painter->setFont(option.font);
     painter->drawText(option.rect, Qt::AlignCenter, text);
     painter->restore();
 }
